@@ -9,3 +9,4 @@ C:\Users\merlo\Bureau\niquetamere\CheckersGame.Shared\obj\Debug\net8.0\CheckersG
 C:\Users\merlo\Bureau\niquetamere\CheckersGame.Shared\obj\Debug\net8.0\refint\CheckersGame.Shared.dll
 C:\Users\merlo\Bureau\niquetamere\CheckersGame.Shared\obj\Debug\net8.0\CheckersGame.Shared.pdb
 C:\Users\merlo\Bureau\niquetamere\CheckersGame.Shared\obj\Debug\net8.0\ref\CheckersGame.Shared.dll
+C:\Users\merlo\Bureau\niquetamere\CheckersGame.Shared\obj\Debug\net8.0\CheckersGame.Shared.sourcelink.json

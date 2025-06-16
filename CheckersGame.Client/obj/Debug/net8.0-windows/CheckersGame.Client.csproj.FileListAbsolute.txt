@@ -22,3 +22,4 @@ C:\Users\merlo\Bureau\niquetamere\CheckersGame.Client\obj\Debug\net8.0-windows\r
 C:\Users\merlo\Bureau\niquetamere\CheckersGame.Client\obj\Debug\net8.0-windows\CheckersGame.Client.pdb
 C:\Users\merlo\Bureau\niquetamere\CheckersGame.Client\obj\Debug\net8.0-windows\CheckersGame.Client.genruntimeconfig.cache
 C:\Users\merlo\Bureau\niquetamere\CheckersGame.Client\obj\Debug\net8.0-windows\ref\CheckersGame.Client.dll
+C:\Users\merlo\Bureau\niquetamere\CheckersGame.Client\obj\Debug\net8.0-windows\CheckersGame.Client.sourcelink.json

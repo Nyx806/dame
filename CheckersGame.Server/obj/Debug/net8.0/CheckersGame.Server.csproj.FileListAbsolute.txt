@@ -16,3 +16,4 @@ C:\Users\merlo\Bureau\niquetamere\CheckersGame.Server\obj\Debug\net8.0\refint\Ch
 C:\Users\merlo\Bureau\niquetamere\CheckersGame.Server\obj\Debug\net8.0\CheckersGame.Server.pdb
 C:\Users\merlo\Bureau\niquetamere\CheckersGame.Server\obj\Debug\net8.0\CheckersGame.Server.genruntimeconfig.cache
 C:\Users\merlo\Bureau\niquetamere\CheckersGame.Server\obj\Debug\net8.0\ref\CheckersGame.Server.dll
+C:\Users\merlo\Bureau\niquetamere\CheckersGame.Server\obj\Debug\net8.0\CheckersGame.Server.sourcelink.json

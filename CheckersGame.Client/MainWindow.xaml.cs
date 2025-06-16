@@ -21,14 +21,15 @@ namespace CheckersGame.Client;
 public partial class MainWindow : Window
 {
     private ClientWebSocket webSocket;
-    private string playerId;
-    private string gameId;
+    private string playerId = string.Empty;
+    private string gameId = string.Empty;
     private PieceColor playerColor;
     private bool isConnected;
     private const int SQUARE_SIZE = 60;
     private int? selectedRow;
     private int? selectedColumn;
     private BoardState? _currentBoardState;
+    private GameStateMessage? _currentGameState;
 
     public MainWindow()
     {
@@ -100,6 +101,8 @@ public partial class MainWindow : Window
 
     private async Task SendMakeMoveMessage(int fromRow, int fromCol, int toRow, int toCol)
     {
+        Console.WriteLine($"Client: Sending move message - From: ({fromRow},{fromCol}) To: ({toRow},{toCol})");
+        Console.WriteLine($"Client: GameId: {gameId}, PlayerId: {playerId}");
         var message = new MakeMoveMessage
         {
             GameId = gameId,
@@ -115,6 +118,7 @@ public partial class MainWindow : Window
     private async Task SendMessage(GameMessage message)
     {
         var messageJson = JsonSerializer.Serialize(message);
+        Console.WriteLine($"Client: Sending message: {messageJson}");
         var messageBytes = Encoding.UTF8.GetBytes(messageJson);
         await webSocket.SendAsync(new ArraySegment<byte>(messageBytes), WebSocketMessageType.Text, true, CancellationToken.None);
     }
@@ -238,7 +242,10 @@ public partial class MainWindow : Window
         Console.WriteLine("Client: Entering HandleGameState.");
         if (message.BoardState != null)
         {
+            Console.WriteLine($"Client: Previous board state pieces count: {_currentBoardState?.Pieces.SelectMany(row => row).Count(p => p != null) ?? 0}");
             _currentBoardState = message.BoardState;
+            _currentGameState = message;
+            Console.WriteLine($"Client: New board state pieces count: {message.BoardState.Pieces.SelectMany(row => row).Count(p => p != null)}");
             Console.WriteLine($"Client: HandleGameState received BoardState with {message.BoardState.Pieces.SelectMany(row => row).Count(p => p != null)} pieces.");
             Console.WriteLine($"Client: HandleGameState - CurrentPlayer: {message.CurrentPlayer}, GameState: {message.GameState}");
             Dispatcher.Invoke(() =>
@@ -256,6 +263,7 @@ public partial class MainWindow : Window
 
     private void HandleMoveResult(MoveResultMessage message)
     {
+        Console.WriteLine($"Client: Entering HandleMoveResult. Success: {message.Success}");
         if (!message.Success)
         {
             MessageBox.Show(message.ErrorMessage);
@@ -265,19 +273,26 @@ public partial class MainWindow : Window
             Console.WriteLine($"Client: MoveResult success. CurrentPlayer: {message.CurrentPlayer}, GameState: {message.GameState}");
             if (message.BoardState != null)
             {
+                Console.WriteLine($"Client: Previous board state pieces count: {_currentBoardState?.Pieces.SelectMany(row => row).Count(p => p != null) ?? 0}");
                 _currentBoardState = message.BoardState;
+                Console.WriteLine($"Client: New board state pieces count: {message.BoardState.Pieces.SelectMany(row => row).Count(p => p != null)}");
                 Dispatcher.Invoke(() =>
                 {
+                    Console.WriteLine("Client: Dispatcher.Invoke in HandleMoveResult calling DrawBoard and UpdateGameStatus.");
                     DrawBoard(message.BoardState);
                     // Create a GameStateMessage from MoveResultMessage for UpdateGameStatus
                     var gameStateForUpdate = new GameStateMessage
                     {
                         CurrentPlayer = message.CurrentPlayer,
                         GameState = message.GameState,
-                        BoardState = message.BoardState // Pass the board state as well, though UpdateGameStatus doesn't use it directly
+                        BoardState = message.BoardState
                     };
                     UpdateGameStatus(gameStateForUpdate);
                 });
+            }
+            else
+            {
+                Console.WriteLine("Client: MoveResult received a null BoardState.");
             }
         }
     }
@@ -328,8 +343,9 @@ public partial class MainWindow : Window
                         StrokeThickness = 2
                     };
 
-                    Canvas.SetLeft(pieceEllipse, col * squareSize + squareSize * 0.1);
-                    Canvas.SetTop(pieceEllipse, row * squareSize + squareSize * 0.1);
+                    // Centrer parfaitement le pion dans sa case
+                    Canvas.SetLeft(pieceEllipse, col * squareSize + (squareSize - pieceEllipse.Width) / 2);
+                    Canvas.SetTop(pieceEllipse, row * squareSize + (squareSize - pieceEllipse.Height) / 2);
                     GameBoard.Children.Add(pieceEllipse);
 
                     // Si c'est une dame, ajouter une couronne
@@ -344,8 +360,9 @@ public partial class MainWindow : Window
                             VerticalAlignment = VerticalAlignment.Center
                         };
 
-                        Canvas.SetLeft(crown, col * squareSize + squareSize * 0.3);
-                        Canvas.SetTop(crown, row * squareSize + squareSize * 0.3);
+                        // Centrer parfaitement la couronne dans sa case
+                        Canvas.SetLeft(crown, col * squareSize + (squareSize - crown.FontSize) / 2);
+                        Canvas.SetTop(crown, row * squareSize + (squareSize - crown.FontSize) / 2);
                         GameBoard.Children.Add(crown);
                     }
                 }
@@ -359,9 +376,9 @@ public partial class MainWindow : Window
             {
                 Width = squareSize,
                 Height = squareSize,
-                Fill = new SolidColorBrush(Color.FromArgb(50, 0, 255, 0)),
+                Fill = new SolidColorBrush(Color.FromArgb(100, 0, 255, 0)),
                 Stroke = Brushes.Green,
-                StrokeThickness = 2
+                StrokeThickness = 3
             };
 
             Canvas.SetLeft(highlight, selectedColumn.Value * squareSize);
@@ -376,7 +393,27 @@ public partial class MainWindow : Window
     {
         Console.WriteLine($"Client: HandleSquareClick received - Row: {row}, Col: {col}");
         if (!isConnected || string.IsNullOrEmpty(gameId))
+        {
+            Console.WriteLine("Client: Cannot handle click - not connected or no game ID");
             return;
+        }
+
+        if (_currentBoardState == null)
+        {
+            Console.WriteLine("Client: Cannot handle click - no current board state");
+            return;
+        }
+
+        // Vérifier si c'est votre tour
+        if (_currentGameState?.CurrentPlayer != playerColor)
+        {
+            Console.WriteLine("Client: Not your turn");
+            MessageBox.Show("Ce n'est pas votre tour de jouer");
+            return;
+        }
+
+        var pieceAtLocation = _currentBoardState.Pieces[row][col];
+        Console.WriteLine($"Client: Piece at location ({row},{col}): {(pieceAtLocation != null ? $"{pieceAtLocation.Color} {pieceAtLocation.Type}" : "None")}");
 
         if (selectedRow.HasValue && selectedColumn.HasValue)
         {
@@ -389,33 +426,22 @@ public partial class MainWindow : Window
         }
         else
         {
-            // Sélectionner une nouvelle case
-            selectedRow = row;
-            selectedColumn = col;
-
-            // Vérifier si la case sélectionnée contient une pièce et sa couleur
-            if (_currentBoardState != null && selectedRow.HasValue && selectedColumn.HasValue)
+            // Vérifier si la case contient une pièce et si c'est la bonne couleur
+            if (pieceAtLocation != null && pieceAtLocation.Color == playerColor)
             {
-                var pieceAtSelection = _currentBoardState.Pieces[selectedRow.Value][selectedColumn.Value];
-                if (pieceAtSelection != null)
-                {
-                    Console.WriteLine($"Client: New selection - Row: {selectedRow.Value}, Col: {selectedColumn.Value}. Piece: {pieceAtSelection.Color} {pieceAtSelection.Type}");
-                }
-                else
-                {
-                    Console.WriteLine($"Client: New selection - Row: {selectedRow.Value}, Col: {selectedColumn.Value}. No piece at this location.");
-                }
+                // Sélectionner une nouvelle case
+                selectedRow = row;
+                selectedColumn = col;
+                Console.WriteLine($"Client: New selection - Row: {selectedRow.Value}, Col: {selectedColumn.Value}. Piece: {pieceAtLocation.Color} {pieceAtLocation.Type}");
             }
             else
             {
-                Console.WriteLine($"Client: New selection - Row: {selectedRow.Value}, Col: {selectedColumn.Value}");
+                Console.WriteLine($"Client: Cannot select - No piece or wrong color at ({row},{col})");
+                return;
             }
 
             // Redessiner le plateau pour afficher la sélection immédiatement
-            if (_currentBoardState != null)
-            {
-                DrawBoard(_currentBoardState);
-            }
+            DrawBoard(_currentBoardState);
         }
     }
 

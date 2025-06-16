@@ -63,16 +63,31 @@ namespace CheckersGame.Shared.Models
             }
 
             // Essayer d'abord une capture
+            Console.WriteLine($"Game: Checking if capture is valid from ({fromRow},{fromCol}) to ({toRow},{toCol})");
             if (Board.IsValidCapture(fromRow, fromCol, toRow, toCol))
             {
-                Console.WriteLine("Game: Attempting capture...");
-                Board.CapturePiece(fromRow, fromCol, toRow, toCol);
-                SwitchPlayer();
-                Console.WriteLine("Game: Capture successful.");
-                return true;
+                Console.WriteLine($"Game: Valid capture detected from ({fromRow},{fromCol}) to ({toRow},{toCol})");
+                try
+                {
+                    Board.CapturePiece(fromRow, fromCol, toRow, toCol);
+                    Console.WriteLine("Game: Capture successful");
+                    SwitchPlayer();
+                    Console.WriteLine("Game: Player switched after capture");
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Game: Error during capture: {ex.Message}");
+                    return false;
+                }
+            }
+            else
+            {
+                Console.WriteLine($"Game: No valid capture from ({fromRow},{fromCol}) to ({toRow},{toCol})");
             }
 
             // Sinon, essayer un mouvement simple
+            Console.WriteLine($"Game: Checking if simple move is valid from ({fromRow},{fromCol}) to ({toRow},{toCol})");
             if (Board.IsValidMove(fromRow, fromCol, toRow, toCol))
             {
                 Console.WriteLine("Game: Attempting simple move...");
@@ -80,6 +95,10 @@ namespace CheckersGame.Shared.Models
                 SwitchPlayer();
                 Console.WriteLine("Game: Simple move successful.");
                 return true;
+            }
+            else
+            {
+                Console.WriteLine($"Game: No valid simple move from ({fromRow},{fromCol}) to ({toRow},{toCol})");
             }
 
             Console.WriteLine("Game: Move invalid - No valid move or capture.");

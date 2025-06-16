@@ -67,6 +67,7 @@ namespace CheckersGame.Shared.Models
     public class BoardState
     {
         public List<List<PieceState?>> Pieces { get; set; }
+        public PieceColor CurrentPlayer { get; set; }
 
         public BoardState()
         {

@@ -127,17 +127,27 @@ namespace CheckersGame.Shared.Models
             Piece? capturedPiece = GetPiece(capturedRow, capturedCol);
 
             Console.WriteLine($"Board: Checking for captured piece at ({capturedRow},{capturedCol})");
+            Console.WriteLine($"Board: Captured piece details - Exists: {capturedPiece != null}, Color: {capturedPiece?.Color}, Type: {capturedPiece?.Type}");
 
             // Vérifier si une pièce adverse est présente
-            if (capturedPiece == null || capturedPiece.Color == piece.Color)
+            if (capturedPiece == null)
             {
-                Console.WriteLine($"Board: No valid piece to capture at ({capturedRow},{capturedCol}) - Piece: {capturedPiece?.Color}");
+                Console.WriteLine($"Board: No piece to capture at ({capturedRow},{capturedCol})");
+                return false;
+            }
+            if (capturedPiece.Color == piece.Color)
+            {
+                Console.WriteLine($"Board: Cannot capture own piece at ({capturedRow},{capturedCol})");
                 return false;
             }
 
             // Vérifier si le mouvement est valide pour la pièce
             bool isValid = piece.IsValidMove(toRow, toCol, true);
             Console.WriteLine($"Board: Piece.IsValidMove for capture returned {isValid} for {piece.Color} {piece.Type} from ({fromRow},{fromCol}) to ({toRow},{toCol})");
+            if (!isValid)
+            {
+                Console.WriteLine($"Board: Invalid move pattern for capture");
+            }
             return isValid;
         }
 
@@ -171,8 +181,25 @@ namespace CheckersGame.Shared.Models
             int capturedRow = (fromRow + toRow) / 2;
             int capturedCol = (fromCol + toCol) / 2;
 
-            MovePiece(fromRow, fromCol, toRow, toCol);
+            // Déplacer la pièce directement sans vérifier IsValidMove
+            Piece? piece = GetPiece(fromRow, fromCol);
+            if (piece == null)
+                throw new InvalidOperationException("No piece at source position");
+
+            pieces[toRow][toCol] = piece;
+            pieces[fromRow][fromCol] = null;
+            piece.Row = toRow;
+            piece.Column = toCol;
+
+            // Supprimer la pièce capturée
             pieces[capturedRow][capturedCol] = null;
+
+            // Promouvoir en roi si nécessaire
+            if ((piece.Color == PieceColor.White && toRow == 0) ||
+                (piece.Color == PieceColor.Black && toRow == BOARD_SIZE - 1))
+            {
+                piece.PromoteToKing();
+            }
         }
 
         public List<(int row, int col)> GetValidMoves(int row, int col)

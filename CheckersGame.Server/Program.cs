@@ -166,28 +166,55 @@ namespace CheckersGame.Server
 
         private static async Task HandleMakeMove(string playerId, MakeMoveMessage moveMessage)
         {
+            Console.WriteLine($"[SERVER] HandleMakeMove called by {playerId}");
+            Console.WriteLine($"[SERVER] Move details - From: ({moveMessage.FromRow},{moveMessage.FromCol}) To: ({moveMessage.ToRow},{moveMessage.ToCol})");
+
+            Game? game = null;
             lock (lockObject)
             {
-                if (!activeGames.TryGetValue(moveMessage.GameId ?? "", out Game? game))
+                if (!activeGames.TryGetValue(moveMessage.GameId ?? "", out game))
                 {
-                    _ = SendErrorMessage(playerId, "Game not found");
+                    Console.WriteLine($"[SERVER] No game found for {moveMessage.GameId}");
                     return;
                 }
+            }
 
-                bool success = game.MakeMove(playerId, moveMessage.FromRow, moveMessage.FromCol, moveMessage.ToRow, moveMessage.ToCol);
+            if (game == null)
+            {
+                await SendErrorMessage(playerId, "Game not found");
+                return;
+            }
 
-                if (success)
+            Console.WriteLine($"[SERVER] Game found - GameId: {game.GameId}, CurrentPlayer: {game.CurrentPlayer}, GameState: {game.State}");
+
+            try
+            {
+                bool moveResult = game.MakeMove(playerId, moveMessage.FromRow, moveMessage.FromCol, moveMessage.ToRow, moveMessage.ToCol);
+                Console.WriteLine($"[SERVER] Move result: {moveResult}");
+
+                if (moveResult)
                 {
+                    Console.WriteLine("[SERVER] Move successful, sending updated game state to all players");
                     // Envoyer l'état mis à jour à tous les joueurs
                     if (game.Player1Id != null)
-                        _ = SendGameState(game, game.Player1Id);
+                    {
+                        await SendGameState(game, game.Player1Id);
+                    }
                     if (game.Player2Id != null)
-                        _ = SendGameState(game, game.Player2Id);
+                    {
+                        await SendGameState(game, game.Player2Id);
+                    }
                 }
                 else
                 {
-                    _ = SendErrorMessage(playerId, "Invalid move");
+                    Console.WriteLine("[SERVER] Move failed, sending error message");
+                    await SendErrorMessage(playerId, "Invalid move");
                 }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[SERVER] Error during move: {ex.Message}");
+                await SendErrorMessage(playerId, $"Error: {ex.Message}");
             }
         }
 
@@ -223,11 +250,14 @@ namespace CheckersGame.Server
             if (!playerConnections.TryGetValue(playerId, out WebSocket? webSocket) || webSocket == null)
                 return;
 
+            var boardState = CreateBoardState(game.Board);
+            boardState.CurrentPlayer = game.CurrentPlayer;
+
             var message = new GameStateMessage
             {
                 GameId = game.GameId,
                 PlayerId = playerId,
-                BoardState = CreateBoardState(game.Board),
+                BoardState = boardState,
                 CurrentPlayer = game.CurrentPlayer,
                 GameState = game.State
             };
