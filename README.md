@@ -2,6 +2,10 @@
 
 Un jeu de dames multijoueur en réseau utilisant WebSocket pour la communication en temps réel.
 
+## Auteurs
+- Antonin Merlo Meyffren
+- Hamdaoui Mayssa
+
 ## Architecture
 
 Le projet est divisé en trois parties principales :
