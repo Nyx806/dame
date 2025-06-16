@@ -1,0 +1,5 @@
+C:\Users\merlo\Bureau\niquetamere\CheckersGame.Client\obj\Debug\net7.0\CheckersGame.Client.csproj.AssemblyReference.cache
+C:\Users\merlo\Bureau\niquetamere\CheckersGame.Client\obj\Debug\net7.0\CheckersGame.Client.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\merlo\Bureau\niquetamere\CheckersGame.Client\obj\Debug\net7.0\CheckersGame.Client.AssemblyInfoInputs.cache
+C:\Users\merlo\Bureau\niquetamere\CheckersGame.Client\obj\Debug\net7.0\CheckersGame.Client.AssemblyInfo.cs
+C:\Users\merlo\Bureau\niquetamere\CheckersGame.Client\obj\Debug\net7.0\CheckersGame.Client.csproj.CoreCompileInputs.cache

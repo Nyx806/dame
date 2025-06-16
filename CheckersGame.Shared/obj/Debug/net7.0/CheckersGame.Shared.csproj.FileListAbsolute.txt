@@ -1,0 +1,11 @@
+C:\Users\merlo\Bureau\niquetamere\CheckersGame.Shared\bin\Debug\net7.0\CheckersGame.Shared.deps.json
+C:\Users\merlo\Bureau\niquetamere\CheckersGame.Shared\bin\Debug\net7.0\CheckersGame.Shared.dll
+C:\Users\merlo\Bureau\niquetamere\CheckersGame.Shared\bin\Debug\net7.0\CheckersGame.Shared.pdb
+C:\Users\merlo\Bureau\niquetamere\CheckersGame.Shared\obj\Debug\net7.0\CheckersGame.Shared.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\merlo\Bureau\niquetamere\CheckersGame.Shared\obj\Debug\net7.0\CheckersGame.Shared.AssemblyInfoInputs.cache
+C:\Users\merlo\Bureau\niquetamere\CheckersGame.Shared\obj\Debug\net7.0\CheckersGame.Shared.AssemblyInfo.cs
+C:\Users\merlo\Bureau\niquetamere\CheckersGame.Shared\obj\Debug\net7.0\CheckersGame.Shared.csproj.CoreCompileInputs.cache
+C:\Users\merlo\Bureau\niquetamere\CheckersGame.Shared\obj\Debug\net7.0\CheckersGame.Shared.dll
+C:\Users\merlo\Bureau\niquetamere\CheckersGame.Shared\obj\Debug\net7.0\refint\CheckersGame.Shared.dll
+C:\Users\merlo\Bureau\niquetamere\CheckersGame.Shared\obj\Debug\net7.0\CheckersGame.Shared.pdb
+C:\Users\merlo\Bureau\niquetamere\CheckersGame.Shared\obj\Debug\net7.0\ref\CheckersGame.Shared.dll
