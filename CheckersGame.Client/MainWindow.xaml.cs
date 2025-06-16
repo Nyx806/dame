@@ -313,27 +313,35 @@ public partial class MainWindow : Window
         {
             for (int col = 0; col < Board.BOARD_SIZE; col++)
             {
+                // Créer un conteneur pour la case et son contenu
+                var squareContainer = new Canvas
+                {
+                    Width = squareSize,
+                    Height = squareSize
+                };
+                Canvas.SetLeft(squareContainer, col * squareSize);
+                Canvas.SetTop(squareContainer, row * squareSize);
+
+                // Ajouter l'événement de clic sur le conteneur
+                int currentRow = row;
+                int currentCol = col;
+                squareContainer.MouseLeftButtonDown += (s, e) => HandleSquareClick(currentRow, currentCol);
+
+                // Ajouter le fond de la case
                 var square = new Rectangle
                 {
                     Width = squareSize,
                     Height = squareSize,
                     Fill = (row + col) % 2 == 0 ? Brushes.White : Brushes.Gray
                 };
-
-                Canvas.SetLeft(square, col * squareSize);
-                Canvas.SetTop(square, row * squareSize);
-                GameBoard.Children.Add(square);
-
-                // Ajouter l'événement de clic
-                int currentRow = row; // Capture the current row value
-                int currentCol = col; // Capture the current col value
-                square.MouseLeftButtonDown += (s, e) => HandleSquareClick(currentRow, currentCol);
+                squareContainer.Children.Add(square);
 
                 // Dessiner la pièce si présente
                 var piece = boardState.Pieces[row][col];
                 if (piece != null)
                 {
                     Console.WriteLine($"Client: Drawing piece at ({row},{col}) Color: {piece.Color} Type: {piece.Type}");
+                    
                     var pieceEllipse = new Ellipse
                     {
                         Width = squareSize * 0.8,
@@ -343,10 +351,10 @@ public partial class MainWindow : Window
                         StrokeThickness = 2
                     };
 
-                    // Centrer parfaitement le pion dans sa case
-                    Canvas.SetLeft(pieceEllipse, col * squareSize + (squareSize - pieceEllipse.Width) / 2);
-                    Canvas.SetTop(pieceEllipse, row * squareSize + (squareSize - pieceEllipse.Height) / 2);
-                    GameBoard.Children.Add(pieceEllipse);
+                    // Centrer le pion dans le conteneur
+                    Canvas.SetLeft(pieceEllipse, (squareSize - pieceEllipse.Width) / 2);
+                    Canvas.SetTop(pieceEllipse, (squareSize - pieceEllipse.Height) / 2);
+                    squareContainer.Children.Add(pieceEllipse);
 
                     // Si c'est une dame, ajouter une couronne
                     if (piece.Type == PieceType.King)
@@ -360,12 +368,14 @@ public partial class MainWindow : Window
                             VerticalAlignment = VerticalAlignment.Center
                         };
 
-                        // Centrer parfaitement la couronne dans sa case
-                        Canvas.SetLeft(crown, col * squareSize + (squareSize - crown.FontSize) / 2);
-                        Canvas.SetTop(crown, row * squareSize + (squareSize - crown.FontSize) / 2);
-                        GameBoard.Children.Add(crown);
+                        // Centrer la couronne dans le conteneur
+                        Canvas.SetLeft(crown, (squareSize - crown.FontSize) / 2);
+                        Canvas.SetTop(crown, (squareSize - crown.FontSize) / 2);
+                        squareContainer.Children.Add(crown);
                     }
                 }
+
+                GameBoard.Children.Add(squareContainer);
             }
         }
 
@@ -384,6 +394,23 @@ public partial class MainWindow : Window
             Canvas.SetLeft(highlight, selectedColumn.Value * squareSize);
             Canvas.SetTop(highlight, selectedRow.Value * squareSize);
             GameBoard.Children.Add(highlight);
+
+            // Ajouter un effet de surbrillance sur la pièce sélectionnée
+            var piece = boardState.Pieces[selectedRow.Value][selectedColumn.Value];
+            if (piece != null)
+            {
+                var pieceHighlight = new Ellipse
+                {
+                    Width = squareSize * 0.85,
+                    Height = squareSize * 0.85,
+                    Stroke = Brushes.Green,
+                    StrokeThickness = 3
+                };
+
+                Canvas.SetLeft(pieceHighlight, selectedColumn.Value * squareSize + (squareSize - pieceHighlight.Width) / 2);
+                Canvas.SetTop(pieceHighlight, selectedRow.Value * squareSize + (squareSize - pieceHighlight.Height) / 2);
+                GameBoard.Children.Add(pieceHighlight);
+            }
         }
 
         Console.WriteLine($"Client: Finished drawing board. Total pieces: {boardState.Pieces.SelectMany(row => row).Count(p => p != null)} pieces.");
@@ -415,10 +442,21 @@ public partial class MainWindow : Window
         var pieceAtLocation = _currentBoardState.Pieces[row][col];
         Console.WriteLine($"Client: Piece at location ({row},{col}): {(pieceAtLocation != null ? $"{pieceAtLocation.Color} {pieceAtLocation.Type}" : "None")}");
 
+        // Si une pièce est déjà sélectionnée
         if (selectedRow.HasValue && selectedColumn.HasValue)
         {
+            // Si on clique sur une autre pièce de la même couleur, changer la sélection
+            if (pieceAtLocation != null && pieceAtLocation.Color == playerColor)
+            {
+                selectedRow = row;
+                selectedColumn = col;
+                Console.WriteLine($"Client: Changed selection to - Row: {selectedRow.Value}, Col: {selectedColumn.Value}");
+                DrawBoard(_currentBoardState);
+                return;
+            }
+
+            // Sinon, essayer de faire un mouvement
             Console.WriteLine($"Client: Existing selection ({selectedRow.Value},{selectedColumn.Value}). Attempting to move to ({row},{col})");
-            // Si une case est déjà sélectionnée, essayer de faire un mouvement
             await SendMakeMoveMessage(selectedRow.Value, selectedColumn.Value, row, col);
             selectedRow = null;
             selectedColumn = null;
@@ -433,15 +471,12 @@ public partial class MainWindow : Window
                 selectedRow = row;
                 selectedColumn = col;
                 Console.WriteLine($"Client: New selection - Row: {selectedRow.Value}, Col: {selectedColumn.Value}. Piece: {pieceAtLocation.Color} {pieceAtLocation.Type}");
+                DrawBoard(_currentBoardState);
             }
             else
             {
                 Console.WriteLine($"Client: Cannot select - No piece or wrong color at ({row},{col})");
-                return;
             }
-
-            // Redessiner le plateau pour afficher la sélection immédiatement
-            DrawBoard(_currentBoardState);
         }
     }
 
